@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${refeicaoDTO.id != null} ? 'Editar Refeição' : 'Nova Refeição'"></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-b from-[#89be77] from-0% via-[#b9dfa3] via-15% via-[#e9ffd0] via-20% to-white to-30% min-h-screen flex flex-col justify-between">
+<div th:replace="~{Header :: main-header}"></div>
+<main class="mt-16 bg-[#599e4a] rounded-3xl p-4 md:p-6 lg:p-10 w-[95%] max-w-2xl mx-auto shadow-xl shadow-green-950/50 flex justify-around flex-wrap gap-4 md:gap-8 min-h-[400px]">
+    <h1 class="text-4xl font-bold mb-6 text-center w-full"
+        th:text="${refeicaoDTO.id != null} ? 'Edição de Refeição' : 'Cadastro de Refeição'"></h1>
+
+    <form th:action="${refeicaoDTO.id != null}
+                   ? @{/refeicoes/editar/{id}(id=${refeicaoDTO.id})}
+                   : @{/refeicoes/novo}"
+          th:object="${refeicaoDTO}"
+          method="post"
+          class="rounded-lg p-6 w-full">
+
+        <!-- Campo hidden para status -->
+        <input type="hidden" th:field="*{status}" />
+
+        <!-- Nome -->
+        <div class="mb-4">
+            <input type="text" id="nome" th:field="*{nome}" placeholder="Nome da Refeição"
+                   class="shadow border border-black rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:shadow-outline" required>
+        </div>
+
+        <!-- Total de kcal -->
+        <div class="mb-4">
+            <input type="text" id="kcalTotal" th:field="*{kcalTotal}" placeholder="Total de Kcal" readonly
+                   class="shadow border border-black rounded w-full py-2 px-3 text-gray-700 bg-gray-100 focus:outline-none focus:shadow-outline" required>
+        </div>
+
+        <!-- Fichas Técnicas -->
+        <div class="mb-6">
+            <h5 class="text-lg font-semibold mb-3">Adicionar Fichas Técnicas</h5>
+            <div class="relative">
+                <input type="text" id="fichaSearch" placeholder="Digite para buscar fichas técnicas..."
+                       class="shadow border border-black rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:shadow-outline">
+                <div id="fichaSuggestions"
+                     class="absolute z-10 w-full mt-1 bg-white rounded-md shadow-lg max-h-60 overflow-y-auto hidden">
+                    <!-- Sugestões inseridas via JS -->
+                </div>
+            </div>
+
+            <!-- Lista de fichas selecionadas -->
+            <div id="selectedFichas" class="mt-3 space-y-2">
+                <div th:each="ficha : ${fichasTecnicasRefeicao}"
+                     class="flex items-center justify-between bg-white bg-opacity-70 p-2 rounded border border-gray-300"
+                     th:attr="
+                 data-id=${ficha.id},
+                 data-name=${ficha.nomePreparacao},
+                 data-vct=${ficha.vct}">
+                    <span th:text="${ficha.nomePreparacao} + ' (' + #numbers.formatDecimal(ficha.vct,2,'POINT') + ' kcal)'"></span>
+                    <button type="button" data-action="remove" class="text-red-500 hover:text-red-700">×</button>
+                </div>
+            </div>
+
+            <!-- Hidden input para IDs -->
+            <input type="hidden" id="fichasTecnicasIds" th:field="*{fichasTecnicasIds}" />
+        </div>
+
+        <!-- Botões -->
+        <div class="flex flex-wrap gap-4 justify-center">
+            <button type="submit"
+                    class="bg-[#297e1d] hover:bg-green-900 text-white font-bold py-2 px-6 rounded shadow focus:outline-none focus:shadow-outline transform hover:scale-105">
+                <span th:text="${refeicaoDTO.id != null} ? 'Atualizar' : 'Salvar'"></span> Refeição
+            </button>
+            <a th:href="@{/refeicoes}"
+               class="bg-[#297e1d] hover:bg-green-900 text-white font-bold py-2 px-6 rounded shadow focus:outline-none focus:shadow-outline transform hover:scale-105 text-center">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</main>
+<div th:replace="~{Footer :: main-footer}"></div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        const fichasTecnicas = /*[[${fichasTecnicas}]]*/ [];
+        const searchInput = document.getElementById('fichaSearch');
+        const suggestionsContainer = document.getElementById('fichaSuggestions');
+        const selectedFichasContainer = document.getElementById('selectedFichas');
+        const hiddenInput = document.getElementById('fichasTecnicasIds');
+        const kcalTotalInput = document.getElementById('kcalTotal');
+
+        // Inicializa selectedFichas a partir do DTO Thymeleaf
+        let selectedFichas = [];
+        const initialFichas = /*[[${fichasTecnicasRefeicao}]]*/ [];
+        initialFichas.forEach(f => {
+            selectedFichas.push({ id: f.id, nomePreparacao: f.nomePreparacao, vct: parseFloat(f.vct) });
+        });
+        updateKcalTotal();
+
+        // Recalcula o total de kcal
+        function updateKcalTotal() {
+            const total = selectedFichas.reduce((sum, ficha) => sum + (ficha.vct || 0), 0);
+            kcalTotalInput.value = total.toFixed(2);
+        }
+
+        // Atualiza o input hidden de IDs
+        function updateHiddenInput() {
+            hiddenInput.value = selectedFichas.map(f => f.id).join(',');
+        }
+
+        // Renderiza sugestões de acordo com o texto
+        function renderSuggestions(query) {
+            if (!query) {
+                suggestionsContainer.classList.add('hidden');
+                return;
+            }
+            const filtered = fichasTecnicas.filter(f =>
+                f.nomePreparacao.toLowerCase().includes(query.toLowerCase()) &&
+                !selectedFichas.some(sf => sf.id === f.id)
+            );
+            if (filtered.length === 0) {
+                suggestionsContainer.innerHTML = '<div class="px-4 py-2 text-gray-500">Nenhuma ficha encontrada</div>';
+            } else {
+                suggestionsContainer.innerHTML = filtered.map(f => `
+            <div class="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-0"
+                 data-id="${f.id}"
+                 data-name="${f.nomePreparacao}"
+                 data-vct="${f.vct}">
+              ${f.nomePreparacao} — ${parseFloat(f.vct).toFixed(2)} kcal
+            </div>
+          `).join('');
+            }
+            suggestionsContainer.classList.remove('hidden');
+        }
+
+        // Adiciona ficha selecionada
+        function addFicha(ficha) {
+            if (!selectedFichas.some(sf => sf.id === ficha.id)) {
+                selectedFichas.push(ficha);
+                const el = document.createElement('div');
+                el.className = 'flex items-center justify-between bg-white bg-opacity-70 p-2 rounded border border-gray-300';
+                el.setAttribute('data-id', ficha.id);
+                el.setAttribute('data-name', ficha.nomePreparacao);
+                el.setAttribute('data-vct', ficha.vct);
+                el.innerHTML = `
+            <span>${ficha.nomePreparacao} (${ficha.vct.toFixed(2)} kcal)</span>
+            <button type="button" data-action="remove" class="text-red-500 hover:text-red-700">×</button>
+          `;
+                selectedFichasContainer.appendChild(el);
+                updateHiddenInput();
+                updateKcalTotal();
+                // evento para remover
+                el.querySelector('[data-action="remove"]')
+                    .addEventListener('click', () => removeFicha(ficha.id));
+            }
+            searchInput.value = '';
+            suggestionsContainer.classList.add('hidden');
+        }
+
+        // Remove ficha
+        function removeFicha(id) {
+            selectedFichas = selectedFichas.filter(f => f.id !== id);
+            // re-renderiza lista
+            selectedFichasContainer.innerHTML = '';
+            selectedFichas.forEach(f => addFicha(f));
+            updateHiddenInput();
+            updateKcalTotal();
+        }
+
+        // Listeners
+        searchInput.addEventListener('input', e => renderSuggestions(e.target.value));
+        suggestionsContainer.addEventListener('click', e => {
+            const node = e.target.closest('[data-id]');
+            if (!node) return;
+            addFicha({
+                id: +node.dataset.id,
+                nomePreparacao: node.dataset.name,
+                vct: parseFloat(node.dataset.vct)
+            });
+        });
+        document.addEventListener('click', e => {
+            if (!searchInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+                suggestionsContainer.classList.add('hidden');
+            }
+        });
+
+        // Atualiza hidden e total iniciais
+        updateHiddenInput();
+        updateKcalTotal();
+    });
+    /*]]>*/
+</script>
+</body>
+</html>

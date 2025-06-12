@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>Nova Ficha Técnica</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-b from-[#89be77] from-0% via-[#b9dfa3] via-15% via-[#e9ffd0] via-20% to-white to-30% min-h-screen flex flex-col justify-between">
+
+<div th:replace="~{Header :: main-header}"></div>
+
+<main class="mt-16  bg-[#599e4a] rounded-3xl mx-auto p-10 w-[95%] max-w-7xl shadow-xl shadow-green-950/50 flex justify-around flex-wrap gap-8 min-h-[700px]">
+    <h1 class="text-4xl md:text-4xl  font-bold mb-4 md:mb-6 text-center w-full"
+        th:text="${ficha.id() != null} ? 'Edição de Ficha' : 'Cadastro de Ficha'">
+    </h1>
+    <form th:action="${ficha.id != null}
+                  ? @{/fichas/editar/{id}(id=${ficha.id})}
+                  : @{/fichas}"
+          th:object="${ficha}"
+          method="post"
+          class="p-0.5 rounded-lg relative"
+          id="form-ficha">
+
+      <input type="hidden" th:field="*{id}"/>
+      <input type="hidden" th:field="*{preparacao.id}"/>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 border-b pb-7">
+        <div>
+          <input type="text"
+                 placeholder="Nome da preparação"
+                 class="mt-1 w-full md:w-96 border border-black rounded-md p-2"
+                 th:field="*{preparacao.nome}"
+                 required />
+        </div>
+
+        <div class="flex justify-end gap-4">
+          <div>
+            <select class="mt-1 w-52 border border-black rounded-md p-2"
+                    th:field="*{preparacao.categoria}"
+                    required>
+              <option value="" disabled selected>Categoria</option>
+              <option th:each="cat : ${T(com.example.sistemanutricao.model.Categoria).values()}"
+                      th:value="${cat}"
+                      th:text="${cat.nome}">
+              </option>
+            </select>
+          </div>
+
+          <div>
+            <input type="number"
+                   placeholder="Nº"
+                   class="mt-1 w-12 border border-black rounded-md p-2 text-sm [appearance:textfield]
+                                                         [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                   th:field="*{preparacao.numero}"
+                   required />
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <div class="overflow-x-auto ">
+          <table class="min-w-full">
+            <thead class="bg-gray-50 border border-black">
+            <tr>
+              <th class="px-4 py-2 text-left text-xs border border-black font-medium text-black tracking-wider">INGREDIENTES</th>
+              <th class="px-4 py-2 text-left text-xs border border-black font-medium text-black tracking-wider">MEDIDA CASEIRA</th>
+              <th class="px-4 py-2 text-left text-xs border border-black font-medium text-black tracking-wider">PB (g)</th>
+              <th class="px-4 py-2 text-left text-xs border border-black font-medium text-black tracking-wider">PL (g)</th>
+              <th class="px-4 py-2 text-left text-xs border border-black font-medium text-black tracking-wider">FC</th>
+              <th class="px-4 py-2 text-left text-xs border border-black font-medium text-black tracking-wider">CUSTO (KG)</th>
+              <th class="px-4 py-2 text-left text-xs border border-black font-medium text-black tracking-wider">CUSTO (USADO)</th>
+              <th class="px-4 py-2 text-left text-xs border border-black font-medium text-black tracking-wider">AÇÕES</th>
+            </tr>
+            </thead>
+            <tbody id="ingredientesAdicionados">
+            <tr th:each="ingrediente, stat : ${ficha.ingredientes}"
+                class="ingrediente-row"
+                th:attr="data-ingrediente-id=${ingrediente.id}">
+              <td class="px-2 py-2 " th:text="${ingrediente.ingrediente.nome}"></td>
+              <td class="px-2 py-2 ">
+                <input type="text" th:field="*{ingredientes[__${stat.index}__].medidaCaseira}"
+                       class="w-full rounded p-1">
+              </td>
+              <td class="px-2 py-2 ">
+                <input type="number" step="0.01" th:field="*{ingredientes[__${stat.index}__].pb}"
+                       class="w-full rounded p-1">
+              </td>
+              <td class="px-2 py-2 ">
+                <input type="number" step="0.01" th:field="*{ingredientes[__${stat.index}__].pl}"
+                       class="w-full rounded p-1">
+              </td>
+              <td class="px-2 py-2">
+                <input
+                      type="number"
+                      step="0.01"
+                      id="fc-${stat.index}"
+                      th:field="*{ingredientes[__${stat.index}__].fc}"
+                      class="w-full border border-black rounded-md p-2 text-sm bg-gray-100 pointer-events-none"
+                      readonly
+                      tabindex="-1"
+                 />
+              </td>
+              <td class="px-2 py-2 ">
+                <input type="number" step="0.01" th:field="*{ingredientes[__${stat.index}__].custoKg}"
+                       class="w-full rounded p-1">
+              </td>
+              <td class="px-2 py-2 ">
+                <input type="number" step="0.01" th:field="*{ingredientes[__${stat.index}__].custoUsado}"
+                       class="w-full rounded p-1">
+              </td>
+              <input type="hidden" th:field="*{ingredientes[__${stat.index}__].id}"/>
+              <input type="hidden" th:field="*{ingredientes[__${stat.index}__].ingrediente.id}"/>
+              <input type="hidden" th:value="${ingrediente.ingrediente.ptn}" class="ingrediente-ptn"/>
+              <input type="hidden" th:value="${ingrediente.ingrediente.cho}" class="ingrediente-cho"/>
+              <input type="hidden" th:value="${ingrediente.ingrediente.lip}" class="ingrediente-lip"/>
+              <input type="hidden" th:value="${ingrediente.ingrediente.sodio}" class="ingrediente-sodio"/>
+              <input type="hidden" th:value="${ingrediente.ingrediente.gorduraSaturada}" class="ingrediente-saturada"/>
+            </tr>
+            </tbody>
+            <tfoot>
+            <tr class="">
+              <td class="px-2 py-2">
+                <select id="ingredienteSelect" class="w-full border border-black rounded-md p-2 text-sm">
+                  <option value="">Selecione...</option>
+                  <option th:each="ingrediente : ${ingredientesDisponiveis}"
+                          th:value="${ingrediente.id}"
+                          th:attr="data-ptn=${ingrediente.ptn},
+                                     data-cho=${ingrediente.cho},
+                                     data-lip=${ingrediente.lip},
+                                     data-sodio=${ingrediente.sodio},
+                                     data-saturada=${ingrediente.gorduraSaturada}"
+                          th:text="${ingrediente.nome}">
+                  </option>
+                </select>
+              </td>
+              <td class="px-2 py-2 ">
+                <input type="text" id="medidaCaseira" class="w-full border border-black rounded-md p-2 text-sm"
+                       placeholder="Uma colher"/>
+              </td>
+              <td class="px-2 py-2 ">
+                <input type="number" step="0.01" id="pb" class="w-full border border-black rounded-md p-2 text-sm [appearance:textfield]
+                                                         [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                       placeholder="100"/>
+              </td>
+              <td class="px-2 py-2 ">
+                <input type="number" step="0.01" id="pl" class="w-full border border-black rounded-md p-2 text-sm [appearance:textfield]
+                                                         [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                       placeholder="100"/>
+              </td>
+              <td class="px-2 py-2 ">
+                <input type="number" step="0.01" id="fc" class="w-full border border-black rounded-md p-2 text-sm [appearance:textfield]
+                                                         [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                       placeholder="0"/>
+              </td>
+              <td class="px-2 py-2 ">
+                <input type="number" step="0.01" id="custoKg"
+                       class="w-full border border-black rounded-md p-2 text-sm [appearance:textfield]
+                                                         [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                       placeholder="4"/>
+
+              </td>
+              <td class="px-2 py-2 ">
+                <input type="number" step="0.01" id="custoUsado"
+                       class="w-full border border-black rounded-md p-2 text-sm [appearance:textfield]
+                                                         [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                       placeholder="0.60"/>
+              </td>
+              <td class="px-2 py-2 text-center">
+                <button type="button" onclick="adicionarIngrediente()"
+                        class="w-8 h-8 rounded-full border border-black bg-[#297e1d] hover:bg-green-900 text-white flex items-center justify-center mx-auto relative transform duration-200  hover:scale-105">
+                  <i class="fa-solid fa-plus text-2xl"></i>
+                </button>
+              </td>
+            </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+
+      <div class="grid grid-cols-1 md:grid-cols-10 gap-4 mb-6 border-t">
+        <div class="md:col-span-7">
+          <textarea
+          placeholder="Equipamentos e utensílios utilizados"
+          class="mt-8 block w-full border border-black rounded-md p-2 resize-none overflow-hidden"
+          rows="1"
+          id="autoExpandTextarea"
+          th:field="*{preparacao.equipamentos}"
+          required
+          ></textarea>
+        </div>
+        <script>
+          document.getElementById('autoExpandTextarea').addEventListener('input', function() {
+          this.style.height = 'auto';
+          this.style.height = (this.scrollHeight) + 'px';
+        });
+        </script>
+
+        <div class="md:col-span-3 flex flex-col items-end mt-8">
+          <div class="w-32 flex items-center gap-2">
+            <label class="text-lg font-bold whitespace-nowrap">R$</label>
+            <input
+                    type="number"
+                    step="0.01"
+                    placeholder="Custo total"
+                    class="block w-full border border-black rounded-md p-2 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    th:field="*{custoTotal}"
+                    required
+            />
+          </div>
+        </div>
+
+        <div class="md:col-span-7">
+          <textarea
+                  placeholder="Modo de preparo"
+                  class="mt-8 block w-full border border-black rounded-md p-2 resize-none overflow-hidden"
+                  rows="1"
+                  id="autoExpandTextarea2"
+                  th:field="*{preparacao.modoPreparo}" required></textarea>
+        </div>
+        <script>
+          document.getElementById('autoExpandTextarea2').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+          });
+        </script>
+
+        <div class="md:col-span-3 flex flex-col items-end mt-8">
+          <div class="w-40 flex items-center gap-2">
+            <label class="text-lg font-bold whitespace-nowrap">R$</label>
+            <input
+                    type="number"
+                    step="0.01"
+                    placeholder="Custo per capita"
+                    class="block w-full border border-black rounded-md p-2 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    th:field="*{custoPerCapita}"
+                    required
+            />
+          </div>
+          <input type="hidden"
+                 th:field="*{status}"
+                 th:value="${T(com.example.sistemanutricao.model.Status).ATIVA}" />
+        </div>
+      </div>
+
+      <div class="mb-8 border-t pb-4">
+        <div class="flex flex-col items-center">
+          <h2 class="text-lg font-semibold mt-6">Foi utilizado água?</h2>
+          <div class="flex items-center justify-center mt-4">
+            <input
+                    type="checkbox"
+                    id="aguaCheckbox"
+                    class="h-4 w-4 rounded-full appearance-none border border-black checked:bg-green-900 focus:outline-none"
+            />
+            <label for="aguaCheckbox" class="ml-2 block text-sm font-medium text-black">Sim</label>
+          </div>
+          <div id="aguaInputs" class="hidden w-full max-w-md mt-4">
+            <div class="grid grid-cols-3 gap-4 items-end">
+              <div class="flex flex-col">
+                <div class="flex items-center gap-1">
+                  <input
+                          type="number"
+                          step="0.01"
+                          class="w-full border border-black rounded-md p-2 text-sm [appearance:textfield]
+                    [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          placeholder="quantidade"
+                          th:field="*{preparacao.qntdAgua}"
+                  />
+                  <span class="text-sm whitespace-nowrap">mL</span>
+                </div>
+              </div>
+
+              <div class="flex flex-col">
+                <label class="text-sm font-medium mb-1">Sobrou(caldo)</label>
+                <div class="flex items-center gap-1">
+                  <input
+                          type="number"
+                          step="0.01"
+                          class="w-full border border-black rounded-md p-2 text-sm [appearance:textfield]
+                    [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          placeholder="0.00"
+                          th:field="*{preparacao.porcentAgua}"
+                  />
+                  <span class="text-sm whitespace-nowrap">%</span>
+                </div>
+              </div>
+
+              <div class="flex flex-col">
+                <input
+                        type="number"
+                        step="0.01"
+                        class="w-full border border-black rounded-md p-2 text-sm [appearance:textfield]
+                  [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        placeholder="fcc"
+                        th:field="*{preparacao.fcc}"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-col items-center mb-6 border-t pt-6">
+        <div class="flex justify-center gap-4 w-full max-w-md mb-4">
+          <div class="flex items-center gap-2">
+            <i class="fa-regular fa-clock text-2xl"></i>
+            <input
+                    type="text"
+                    class="w-48 border border-black rounded-md p-2"
+                    placeholder="1H15min"
+                    th:field="*{preparacao.tempoPreparo}"
+                    required
+            />
+          </div>
+          <div class="flex items-center">
+            <input
+                    type="text"
+                    class="w-48 border border-black rounded-md p-2"
+                    placeholder="Medida caseira"
+                    th:field="*{medidaCaseira}"
+                    required
+            />
+          </div>
+        </div>
+        <div class="flex flex-wrap justify-center gap-4 w-full max-w-5xl">
+          <!-- Nº de porções -->
+          <div class="flex items-center">
+            <input
+                    id="numeroPorcoes"
+                    type="number"
+                    class="w-28 border border-black rounded-md p-2 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    placeholder="Nº de porções"
+                    th:field="*{numeroPorcoes}"
+                    min="1"
+                    required
+            />
+          </div>
+
+          <!-- Rendimento total (g) -->
+          <div class="flex items-center gap-2">
+            <input
+                    id="rendimento"
+                    type="number"
+                    step="0.01"
+                    class="w-28 border border-black rounded-md p-2 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    placeholder="Rendimento"
+                    th:field="*{preparacao.rendimento}"
+                    min="0"
+                    required
+            />
+            <label class="text-sm font-medium whitespace-nowrap">g</label>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <input
+                    id="pesoPorcao"
+                    type="text"
+                    class="w-28 border border-black rounded-md p-2 text-sm bg-gray-100"
+                    placeholder="Peso da porção"
+                    th:field="*{pesoPorcao}"
+                    readonly
+            />
+            <label class="text-sm font-medium whitespace-nowrap">g</label>
+          </div>
+
+          <script th:inline="javascript">
+            function updatePesoPorcao() {
+              const n = parseFloat(document.getElementById('numeroPorcoes').value);
+              const r = parseFloat(document.getElementById('rendimento').value);
+              const input = document.getElementById('pesoPorcao');
+
+              if (n > 0 && r > 0) {
+                input.value = (r / n).toFixed(2);
+              } else {
+                input.value = '';
+              }
+            }
+
+            const numEl = document.getElementById('numeroPorcoes');
+            const rendEl = document.getElementById('rendimento');
+
+            numEl.addEventListener('input', updatePesoPorcao);
+            rendEl.addEventListener('input', updatePesoPorcao);
+
+          </script>
+
+
+        </div>
+      </div>
+
+      <div class="mb-6 mt-12">
+        <div class="flex justify-center mb-6">
+          <button type="button" onclick="toggleNutricional()"
+                  class="px-4 py-2 bg-[#297e1d] text-white rounded-md hover:bg-green-900 shadow-xl shadow-green-950/50 transform duration-200  hover:scale-105">
+            Perfil Nutricional
+          </button>
+        </div>
+
+        <div id="perfilNutricional" class="hidden p-4 ">
+
+          <div class="overflow-hidden rounded-lg border border-black shadow-sm">
+            <table class="w-full border-collapse">
+              <thead>
+              <tr class="bg-gray-300">
+                <th class="px-2 py-2 border border-black text-left rounded-tl-lg">Ingredients</th>
+                <th class="px-2 py-2 border border-black text-left">Per Capita(PL)</th>
+                <th class="px-2 py-2 border border-black text-left">PTN (g)</th>
+                <th class="px-2 py-2 border border-black text-left">CHO (g)</th>
+                <th class="px-2 py-2 border border-black text-left">LP (g)</th>
+                <th class="px-2 py-2 border border-black text-left">Sódio (mg)</th>
+                <th class="px-2 py-2 border border-black text-left rounded-tr-lg">Gordura Saturada (g)</th>
+              </tr>
+              </thead>
+              <tbody id="nutricionalIngredientes" class="bg-white">
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-4 w-48 mx-auto">
+            <label class="block text-center text-sm font-medium text-black mb-1">VTC (kcal)</label>
+            <div class="border border-black rounded-md bg-white py-2 px-4">
+              <span id="vtc-display" class="text-lg font-semibold text-black block text-center"></span>
+            </div>
+            <div>
+              <input type="hidden" th:field="*{perfilNutricional.vtc}" id="vtc" required/>
+              <input type="hidden" th:field="*{perfilNutricional.kcalPtn}" id="kcalPtn" required/>
+              <input type="hidden" th:field="*{perfilNutricional.kcalCho}" id="kcalCho" required/>
+              <input type="hidden" th:field="*{perfilNutricional.kcalLip}" id="kcalLip" required/>
+              <input type="hidden" th:field="*{perfilNutricional.gramasPtn}" id="gramasPtn" required/>
+              <input type="hidden" th:field="*{perfilNutricional.gramasCho}" id="gramasCho" required/>
+              <input type="hidden" th:field="*{perfilNutricional.gramasLip}" id="gramasLip" required/>
+              <input type="hidden" th:field="*{perfilNutricional.gramasSodio}" id="gramasSodio" required/>
+              <input type="hidden" th:field="*{perfilNutricional.gramasSaturada}" id="gramasSaturada" required/>
+              <input type="hidden" th:field="*{perfilNutricional.porcentPtn}" id="porcentPtn" required/>
+              <input type="hidden" th:field="*{perfilNutricional.porcentCho}" id="porcentCho" required/>
+              <input type="hidden" th:field="*{perfilNutricional.porcentLip}" id="porcentLip" required/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-center gap-4 items-center">
+        <button type="submit"
+                class="px-12 py-2 bg-[#297e1d] text-white rounded-md hover:bg-green-900 shadow-xl shadow-green-950/50"
+                th:text="${ficha.id != null} ? 'Atualizar' : 'Salvar'">
+        </button>
+        <label class="flex items-center gap-2">
+          <input
+                  type="checkbox"
+                  id="statusCheckbox"
+                  class="h-4 w-4"
+                  onchange="updateStatusCriacao(this)"
+                  th:checked="${ficha.statusCriacao == T(com.example.sistemanutricao.model.StatusCriacao).COMPLETA}"
+          />
+          <span>Completa</span>
+        </label>
+
+        <input
+                type="hidden"
+                th:field="*{statusCriacao}"
+                id="statusCriacaoField"
+        />
+      </div>
+
+      <script>
+        function updateStatusCriacao(checkbox) {
+          const statusField = document.getElementById('statusCriacaoField');
+          if (checkbox.checked) {
+            statusField.value = 'COMPLETA';
+          } else {
+            statusField.value = 'INCOMPLETA';
+          }
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+          const checkbox = document.getElementById('statusCheckbox');
+          if (checkbox) {
+            updateStatusCriacao(checkbox);
+          }
+        });
+      </script>
+  </form>
+</div>
+  <script th:src="@{/Scripts/ScriptFormFicha.js}"></script>
+  <script th:src="@{/Scripts/ScriptGeral.js}"></script>
+</main>
+<div th:replace="~{Footer :: main-footer}"></div>
+</body>
+</html>

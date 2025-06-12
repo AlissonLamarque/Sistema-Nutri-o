@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${ingrediente.id() != null} ? 'Editar Ingrediente' : 'Novo Ingrediente'"></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-b from-[#89be77] from-0% via-[#b9dfa3] via-15% via-[#e9ffd0] via-20% to-white to-30% min-h-screen flex flex-col justify-between">
+<div th:replace="~{Header :: main-header}"></div>
+<main class="mt-16 bg-[#599e4a] rounded-3xl p-4 md:p-6 lg:p-10 w-[95%] max-w-2xl mx-auto shadow-xl shadow-green-950/50 flex justify-around flex-wrap gap-4 md:gap-8 min-h-[400px]">
+    <h1 class="text-4xl md:text-4xl font-bold mb-4 md:mb-6 text-center w-full"
+        th:text="${ingrediente.id() != null} ? 'Edição de Ingrediente' : 'Cadastro de Ingrediente'">
+    </h1>
+
+    <form th:action="${ingrediente.id() != null}
+                 ? @{/ingredientes/editar/{id}(id=${ingrediente.id()})}
+                 : @{/ingredientes/novo}"
+          th:object="${ingrediente}"
+          method="post"
+          class="rounded-lg p-4 md:p-6 w-full">
+
+        <div class="mb-4">
+            <input type="text" id="nome" placeholder="Nome" name="nome" th:value="${ingrediente.nome()}"
+                   class="shadow appearance-none border border-black rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-sm md:text-base" required>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-4">
+            <div class="flex items-center gap-2">
+                <div class="flex-1">
+                    <input type="number" step="0.01" id="ptn" th:placeholder="Proteina" name="ptn" th:value="${ingrediente.ptn()}"
+                           class="shadow appearance-none border border-black rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-sm md:text-base" required>
+                </div>
+                <label class="text-sm font-medium whitespace-nowrap">g</label>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <div class="flex-1">
+                    <input type="number" step="0.01" id="cho" th:placeholder="Carboidrato" name="cho" th:value="${ingrediente.cho()}"
+                           class="shadow appearance-none border border-black rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-sm md:text-base" required>
+                </div>
+                <label class="text-sm font-medium whitespace-nowrap">g</label>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <div class="flex-1">
+                    <input type="number" step="0.01" id="lip" th:placeholder="Lipidios" name="lip" th:value="${ingrediente.lip()}"
+                           class="shadow appearance-none border border-black rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-sm md:text-base" required>
+                </div>
+                <label class="text-sm font-medium whitespace-nowrap">g</label>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-4">
+            <div class="flex items-center gap-2">
+                <div class="flex-1">
+                    <input type="number" step="0.01" id="sodio" th:placeholder="Sódio" name="sodio" th:value="${ingrediente.sodio()}"
+                           class="shadow appearance-none border border-black rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-sm md:text-base" required>
+                </div>
+                <label class="text-sm font-medium whitespace-nowrap">g</label>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <div class="flex-1">
+                    <input type="number" step="0.01" id="gorduraSaturada" th:placeholder="Gordura" name="gorduraSaturada" th:value="${ingrediente.gorduraSaturada()}"
+                           class="shadow appearance-none border border-black rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-sm md:text-base" required>
+                </div>
+                <label class="text-sm font-medium whitespace-nowrap">g</label>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <div class="flex-1">
+                    <input type="number" id="usuarioId" th:placeholder="Usuario" name="usuarioId" th:value="${ingrediente.usuarioId()}"
+                           class="shadow appearance-none border border-black rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-sm md:text-base" required>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-center">
+            <button type="submit" class="bg-[#297e1d] hover:bg-green-900 text-white border border-black font-bold py-2 px-6 sm:px-10 md:px-16 rounded focus:outline-none focus:shadow-outline w-full sm:w-auto text-sm shadow-xl shadow-green-950/50 transform duration-200 hover:scale-105">
+                <span th:text="${ingrediente.id() != null} ? 'Atualizar' : 'Salvar'"></span>
+            </button>
+        </div>
+        <input type="hidden"
+               name="status"
+               th:value="${T(com.example.sistemanutricao.model.Status).ATIVA}" />
+    </form>
+    <script th:src="@{/Scripts/ScriptGeral.js}"></script>
+</main>
+<div th:replace="~{Footer :: main-footer}"></div>
+</body>
+</html>

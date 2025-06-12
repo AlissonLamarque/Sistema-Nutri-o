@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Ingredientes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-b from-[#89be77] from-0% via-[#b9dfa3] via-15% via-[#e9ffd0] via-20% to-white to-30% min-h-screen flex flex-col justify-between">
+<div th:replace="~{Header :: main-header}"></div>
+<main class="mt-16 bg-[#599e4a] rounded-3xl p-10 w-[95%] max-w-6xl mx-auto shadow-xl shadow-green-950/50 flex justify-around flex-wrap gap-8 min-h-[500px]">
+    <div class="max-w-5xl mx-auto w-full">
+        <!-- Cabeçalho com título e botões -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 id="tituloPagina" class="absolute left-1/2 transform -translate-x-1/2 text-4xl font-bold text-black">
+                <span th:text="${view == 'taco'} ? 'Tabela Taco' : 'Seus Ingredientes'"></span>
+            </h1>
+
+            <div class="ml-auto flex gap-4">
+                <a id="tacoButton"
+                   th:with="isTacoView=${view == 'taco'}"
+                   th:href="${isTacoView} ? '/ingredientes?view=meus' : '/ingredientes/usuario1?view=taco'"
+                   class="px-3 py-2 border border-black bg-[#297e1d] text-white rounded-lg text-lg font-medium shadow-xl shadow-green-950/50 transform duration-200 hover:bg-green-900 hover:scale-105">
+                    <span th:text="${isTacoView} ? 'Seus Ingredientes' : 'TACO'"></span>
+                </a>
+
+                <button type="button" id="toggleStatusBtn2"
+                        th:if="${view != 'taco'}"
+                        th:data-current-status="${statusAtual != null ? statusAtual : 'INATIVA'}"
+                        class="px-3 py-2 border border-black bg-[#297e1d] text-white rounded-lg text-lg font-medium shadow-xl shadow-green-950/50 transform duration-200 hover:bg-green-900 hover:scale-105">
+                    <span th:text="${statusAtual != null && statusAtual.name() == 'ATIVA'} ? 'Arquivados' : 'Desarquivados'"></span>
+                </button>
+            </div>
+        </div>
+        <form id="pesquisaForm" method="get" class="p-6 rounded-lg mb-8 mx-auto max-w-4xl">
+            <div class="flex flex-col items-center gap-6 md:flex-row md:justify-center">
+                <div class="w-full md:w-auto">
+                    <select id="campoPesquisa" class="w-72 p-3 border border-black rounded-lg text-lg text-black">
+                        <option disabled selected>Selecionar campo</option>
+                        <option value="nome">Nome</option>
+                        <option value="PTN">PTN</option>
+                        <option value="CHO">CHO</option>
+                        <option value="LIP">LIP</option>
+                        <option value="sodio">Sódio</option>
+                        <option value="gorduras">Gorduras Saturadas</option>
+                    </select>
+                </div>
+
+                <div class="w-full md:w-auto">
+                    <input type="text" id="valorPesquisa" placeholder="Valor do campo"
+                           class="w-72 p-3 border border-black rounded-lg text-lg placeholder-black">
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="button" id="btnPesquisar"
+                            class="px-3 py-2 border border-black bg-[#297e1d] text-white rounded-lg text-lg font-medium shadow-xl shadow-green-950/50 transform duration-200 hover:bg-green-900 hover:scale-105">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <div class="space-y-4">
+            <div th:each="ingrediente : ${ingredientes}" class="bg-[#89be77] p-6 rounded-full shadow-xl shadow-green-950/50 border border-black">
+                <div class="hidden md:flex items-center justify-between flex-wrap gap-4">
+                    <div class="min-w-[150px] max-w-[200px] truncate">
+                        <span class="text-xl font-semibold text-black" th:text="${ingrediente.nome}"/>
+                    </div>
+
+                    <div class="flex flex-1 flex-wrap justify-between gap-4 min-w-0">
+                        <div class="text-center min-w-[80px]">
+                            <div class="text-sm text-gray-700">PTN</div>
+                            <div class="font-semibold" th:text="${ingrediente.ptn} + 'g'"/>
+                        </div>
+                        <div class="text-center min-w-[80px]">
+                            <div class="text-sm text-gray-700">CHO</div>
+                            <div class="font-semibold" th:text="${ingrediente.cho} + 'g'"/>
+                        </div>
+                        <div class="text-center min-w-[80px]">
+                            <div class="text-sm text-gray-700">LIP</div>
+                            <div class="font-semibold" th:text="${ingrediente.lip} + 'g'"/>
+                        </div>
+                        <div class="text-center min-w-[80px]">
+                            <div class="text-sm text-gray-700">Sódio</div>
+                            <div class="font-semibold" th:text="${ingrediente.sodio} + 'mg'"/>
+                        </div>
+                        <div class="text-center min-w-[80px]">
+                            <div class="text-sm text-gray-700">Gorduras</div>
+                            <div class="font-semibold" th:text="${ingrediente.gorduraSaturada} + 'g'"/>
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-2 min-w-[180px] justify-end" th:unless="${view == 'taco'}">
+                        <a th:href="@{/ingredientes/editar/{id}(id=${ingrediente.id})}"
+                           class="px-3 py-1 border border-black rounded-lg bg-[#e9ffd0] shadow-xl shadow-green-950/50 text-black text-sm hover:bg-[#b9dfa3] transform duration-200 hover:scale-105">
+                            Editar
+                        </a>
+                        <form th:action="@{/ingredientes/atualiza-status/{id}(id=${ingrediente.id})}" method="post" class="ml-2">
+                            <button type="submit"
+                                    class="px-3 py-1 border bg-[#e9ffd0] shadow-xl shadow-green-950/50 border-black rounded-lg text-sm hover:bg-[#b9dfa3] transform duration-200 hover:scale-105">
+                                <span th:text="${ingrediente.status.name() == 'ATIVA'} ? 'Arquivar' : 'Desarquivar'"></span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="md:hidden space-y-3">
+                    <div class="font-semibold text-lg truncate" th:text="${ingrediente.nome}"/>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <div class="text-sm text-gray-700">PTN</div>
+                            <div th:text="${ingrediente.ptn} + 'g'"/>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-700">CHO</div>
+                            <div th:text="${ingrediente.cho} + 'g'"/>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-700">LIP</div>
+                            <div th:text="${ingrediente.lip} + 'g'"/>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-700">Sódio</div>
+                            <div th:text="${ingrediente.sodio} + 'mg'"/>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-700">Gorduras</div>
+                            <div th:text="${ingrediente.gorduraSaturada} + 'g'"/>
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-2 pt-2" th:unless="${view == 'taco'}">
+                        <a th:href="@{/ingredientes/editar/{id}(id=${ingrediente.id})}"
+                           class="flex-1 text-center px-3 py-1 border border-black rounded-lg bg-white text-black text-sm hover:bg-gray-100 transition">
+                            Editar
+                        </a>
+                        <form th:action="@{/ingredientes/toggle-status/{id}(id=${ingrediente.id})}" method="post" class="ml-2">
+                            <button type="submit"
+                                    class="px-3 py-1 border bg-white border-black rounded-lg text-sm transition">
+                                <span th:text="${ingrediente.status.name() == 'ATIVA'} ? 'Arquivar' : 'Desarquivar'"></span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script th:src="@{/Scripts/ScriptGeral.js}"></script>
+    <script th:src="@{/Scripts/ScriptListIngrediente.js}"></script>
+</main>
+<div th:replace="~{Footer :: main-footer}"></div>
+</body>
+</html>

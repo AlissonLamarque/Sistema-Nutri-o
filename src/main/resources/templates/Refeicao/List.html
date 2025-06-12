@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Refeições</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-b from-[#89be77] from-0% via-[#b9dfa3] via-15% via-[#e9ffd0] via-20% to-white to-30% min-h-screen flex flex-col justify-between">
+
+<div th:replace="~{Header :: main-header}"></div>
+
+<main class="mt-16 bg-[#599e4a] rounded-3xl p-10 w-[95%] max-w-6xl mx-auto shadow-xl shadow-green-950/50 flex flex-col gap-6 min-h-[500px]">
+
+    <div class="relative mb-6">
+        <h1 class="text-4xl font-bold text-center text-black">
+            Suas Refeições
+        </h1>
+
+        <button
+                type="button"
+                id="toggleStatusBtn"
+                th:data-current-status="${statusAtual != null ? statusAtual.name() : 'INATIVA'}"
+                class="absolute right-0 top-1/2 transform -translate-y-1/2
+           px-3 py-2 border border-black bg-[#297e1d] text-white
+           rounded-lg text-lg font-medium shadow-xl shadow-green-950/50
+           transition duration-200 hover:bg-green-900 hover:scale-105"
+        >
+    <span
+            th:text="${statusAtual != null and statusAtual.name() == 'ATIVA'
+                ? 'Arquivadas' : 'Desarquivadas'}">
+    </span>
+        </button>
+    </div>
+
+
+    <form th:action="@{/refeicoes/pesquisar}" method="get"
+          class="p-6 rounded-lg mb-8 mx-auto max-w-4xl">
+        <div class="flex flex-col items-center gap-4 md:flex-row md:justify-center">
+            <input type="text"
+                   name="nome"
+                   th:value="${termoBusca}"
+                   placeholder="Pesquisar por nome"
+                   class="w-72 p-3 border border-black rounded-lg text-lg"
+                   required />
+
+            <button type="submit"
+                    class="px-4 py-2 border border-black bg-[#297e1d] text-white rounded-lg text-lg font-medium shadow-xl shadow-green-950/50 transform duration-200 hover:bg-green-900 hover:scale-105">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </form>
+
+
+    <div class="space-y-4">
+        <div th:each="refeicao : ${refeicoes}"
+             class="bg-[#89be77] p-6 rounded-2xl shadow border border-black">
+            <div class="md:flex md:justify-between md:items-center">
+
+                <div class="space-y-2 text-center md:text-left">
+                    <h2 class="text-2xl font-semibold text-black truncate"
+                        th:text="${refeicao.nome}"></h2>
+                    <div class="text-gray-700">ID: <span th:text="${refeicao.id}"></span></div>
+                    <div class="text-gray-700">
+                        Kcal Total: <span th:text="${refeicao.kcalTotal}"></span>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-2">
+            <span th:each="ficha : ${refeicao.fichasTecnicas}"
+                  class="bg-white px-3 py-1 rounded-full text-sm font-medium text-gray-800"
+                  th:text="${ficha.nomePreparacao}">
+            </span>
+                </div>
+
+                <div class="flex justify-end space-x-2">
+                    <a th:href="@{/refeicoes/editar/{id}(id=${refeicao.id})}"
+                       class="flex-1 text-center px-3 py-1 border border-black rounded-lg bg-[#e9ffd0] text-black text-sm shadow-xl shadow-green-950/50 transform duration-200 hover:bg-green-900 hover:scale-105">
+                        Editar
+                    </a>
+
+                    <form th:action="@{/refeicoes/toggle-status/{id}(id=${refeicao.id})}"
+                          method="post"
+                          class="ml-2">
+                        <button type="submit"
+                                class="px-3 py-1 border bg-white border-black rounded-lg text-sm transition">
+                <span
+                        th:text="${refeicao.status.name() == 'ATIVA'
+                              ? 'Arquivar'
+                              : 'Desarquivar'}">
+                </span>
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const toggleBtn = document.getElementById('toggleStatusBtn');
+        toggleBtn.addEventListener('click', function() {
+            const current = this.dataset.currentStatus;
+            const next = current === 'ATIVA' ? 'INATIVA' : 'ATIVA';
+            // Atualiza texto do botão
+            this.querySelector('span').textContent =
+                next === 'ATIVA' ? 'Ver Inativas' : 'Ver Ativas';
+            this.dataset.currentStatus = next;
+            // Redireciona para o filtro por status
+            window.location.href = `/refeicoes/por-status?status=${next}`;
+        });
+    </script>
+
+</main>
+
+<div th:replace="~{Footer :: main-footer}"></div>
+
+</body>
+</html>
